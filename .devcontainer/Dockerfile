@@ -63,16 +63,13 @@ ENV PATH="/home/pwuser/.local/bin:${PATH}"
 # Build context must be the workspace root (set "context": ".." in devcontainer.json).
 # Named volumes inherit image contents on first create, so the caches seeded here
 # carry over into /home/pwuser/.npm and /ms-playwright-cli volumes automatically.
-COPY --chown=pwuser:pwuser package.json package-lock.json /tmp/staging/
+COPY --chown=pwuser:pwuser package.json package-lock.json scripts/install-playwright-cli-browsers.sh /tmp/staging/
 
 USER pwuser
 WORKDIR /tmp/staging
 
 RUN npm ci \
-    && CLI_PW_VERSION=$(node -p "require('./node_modules/@playwright/cli/node_modules/playwright/package.json').version") \
-    && PLAYWRIGHT_BROWSERS_PATH=/ms-playwright-cli \
-       node ./node_modules/@playwright/cli/node_modules/playwright/cli.js install chromium \
-    && touch "/ms-playwright-cli/.pw-cli-browsers.${CLI_PW_VERSION}" \
+    && PLAYWRIGHT_CLI_BROWSERS_PATH=/ms-playwright-cli bash install-playwright-cli-browsers.sh . \
     && rm -rf /tmp/staging
 
 USER root
